@@ -1,0 +1,29 @@
+[tool.poetry]
+name = "quantuloop-benchmark"
+version = "0.1.0"
+description = ""
+authors = ["Evandro Chagas Ribeiro da Rosa <evandro@quantuloop.com>"]
+readme = "README.md"
+packages = [{include = "quantuloop_benchmark", from = "src"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+ket-lang = "0.5.3b1"
+streamlit = "^1.21.0"
+plotly = "^5.14.1"
+quantuloop-simulator = "^2023.4"
+
+
+[tool.poetry.group.dev.dependencies]
+autopep8 = "^2.0.2"
+
+
+[[tool.poetry.source]]
+name = "quantuloop"
+url = "https://gitlab.com/api/v4/projects/43029789/packages/pypi/simple"
+default = false
+secondary = true
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
