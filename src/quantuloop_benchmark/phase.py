@@ -21,6 +21,8 @@ def qft(qubits: quant, invert: bool = True):
 
 
 def phase_estimator(oracle, precision: int) -> int:
+    precision -= 1
+
     ctr = H(quant(precision))
     tgr = X(quant())
 

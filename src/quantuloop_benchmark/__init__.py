@@ -21,7 +21,7 @@ BENCHMARK_SHORT_NAME = {
 
 BENCHMARK_INPUTS = {
     "grover": list(range(2, 31)),
-    "shor":  list(range(8, 74, 2)),
+    "shor":  list(range(8, 48, 2)),
     "phase": list(range(10, 45)),
 }
 
