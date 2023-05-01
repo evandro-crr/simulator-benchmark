@@ -113,56 +113,56 @@ with st.sidebar:
 
     ## Filter
     """
-    match st.radio("Comparative between", ["Simulators", "AWS EC2 Instances"]):
-        case 'Simulators':
-            plot_selection = 'Simulator'
+    option = st.radio("Comparative between", [
+                      "Simulators", "AWS EC2 Instances"])
+    if option == 'Simulators':
+        plot_selection = 'Simulator'
 
-            plot_title = st.selectbox(
-                "Select the Instance",
-                sorted(instances)
-            )
+        plot_title = st.selectbox(
+            "Select the Instance",
+            sorted(instances)
+        )
 
-            instance = [plot_title]
+        instance = [plot_title]
 
-            simulator = st.multiselect(
-                "Select the Simulators",
-                SIMULATORS,
-                SIMULATORS_SELECTED,
-            )
+        simulator = st.multiselect(
+            "Select the Simulators",
+            SIMULATORS,
+            SIMULATORS_SELECTED,
+        )
 
-            if not len(simulator):
-                st.warning('Select at least one simulator', icon="⚠️")
+        if not len(simulator):
+            st.warning('Select at least one simulator', icon="⚠️")
 
-        case 'AWS EC2 Instances':
-            plot_selection = 'AWS EC2 Instances'
+    elif option == 'AWS EC2 Instances':
+        plot_selection = 'AWS EC2 Instances'
 
-            plot_title = st.selectbox(
-                "Select the simulator",
-                SIMULATORS
-            )
+        plot_title = st.selectbox(
+            "Select the simulator",
+            SIMULATORS
+        )
 
-            simulator = [plot_title]
+        simulator = [plot_title]
 
-            instance = st.multiselect(
-                "Select the instances",
-                sorted(instances),
-                instances
-            )
+        instance = st.multiselect(
+            "Select the instances",
+            sorted(instances),
+            instances
+        )
 
-            if not len(instance):
-                st.warning('Select at least one instance', icon="⚠️")
+        if not len(instance):
+            st.warning('Select at least one instance', icon="⚠️")
 
     """
     ## Options
     """
-    match st.radio("Plot type", ['Line plot', 'Bar plot']):
-        case 'Line plot':
-            plot_type = px.line
-            plot_options = dict(markers=True)
-
-        case 'Bar plot':
-            plot_type = px.bar
-            plot_options = dict(barmode='group')
+    option = st.radio("Plot type", ['Line plot', 'Bar plot'])
+    if option == 'Line plot':
+        plot_type = px.line
+        plot_options = dict(markers=True)
+    elif option == 'Bar plot':
+        plot_type = px.bar
+        plot_options = dict(barmode='group')
 
     time_log = st.checkbox("Show time in logarithmic scale", value=True)
 
@@ -218,7 +218,7 @@ with code_tab:
         adj(qft, reg1)
         r = reduce(gcd, dump(reg1).shots)
         return 2**n//r
-        
+
     def qft(qubits: quant, invert: bool = True):
         if len(qubits) == 1:
             H(qubits)
@@ -269,7 +269,7 @@ plot_tab, code_tab = st.tabs(["Performance Plot", "Ket Code"])
 
 with plot_tab:
     plot('phase')
-    
+
 with code_tab:
     """
     ```py
@@ -282,7 +282,7 @@ with code_tab:
                 oracle(i, tgr)
         adj(qft, ctr)
         return measure(reversed(ctr)).value/2**precision
-        
+
     def qft(qubits: quant, invert: bool = True):
         if len(qubits) == 1:
             H(qubits)
