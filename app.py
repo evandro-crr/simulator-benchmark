@@ -95,7 +95,7 @@ def load_data():
             benchmark_index,
         ],
         columns=[
-            "Instance (CPU/GPU)",
+            "AWS EC2 Instances",
             "Simulator",
             "N# Qubits",
             "Time (s)",
@@ -113,7 +113,7 @@ with st.sidebar:
 
     ## Filter
     """
-    match st.radio("Comparative between", ["Simulators", "Instances (CPU/GPU)"]):
+    match st.radio("Comparative between", ["Simulators", "AWS EC2 Instances"]):
         case 'Simulators':
             plot_selection = 'Simulator'
 
@@ -133,8 +133,8 @@ with st.sidebar:
             if not len(simulator):
                 st.warning('Select at least one simulator', icon="⚠️")
 
-        case 'Instances (CPU/GPU)':
-            plot_selection = 'Instance (CPU/GPU)'
+        case 'AWS EC2 Instances':
+            plot_selection = 'AWS EC2 Instances'
 
             plot_title = st.selectbox(
                 "Select the simulator",
@@ -169,7 +169,7 @@ with st.sidebar:
 
 def filter_data(benchmark):
     df = data.loc[BENCHMARK_SHORT_NAME[benchmark]]
-    df = df[df['Instance (CPU/GPU)'].isin(instance)]
+    df = df[df['AWS EC2 Instances'].isin(instance)]
     df = df[df['Simulator'].isin(simulator)]
     return df
 
