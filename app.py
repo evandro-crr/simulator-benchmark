@@ -194,12 +194,21 @@ st.image("https://simulator.quantuloop.com/_images/quloop-sim-logo.svg")
 
 """
 # Quantum Simulator Benchmark
+
+The benchmark results of the Quantuloop Quantum Simulator Suite for HPC on AWS.
+For instructions on how to deploy the simulator suite on the AWS Cloud, please visit https://simulator.quantuloop.com. 
 """
 
 """
 ## Shor's Algorithm
 
-[Shor's factorization algorithm](https://en.wikipedia.org/wiki/Shor%27s_algorithm) is an example where the Quantuloop Sparse simulator outperforms other simulation models. To factorize an n-bit number, at least $2n$ qubits are required, and each step (quantum gate) on the Quantuloop QuEST simulator takes $O(2^{2n})$. In contrast, each step on the Quantuloop Sparse simulator takes $O(\log(2^n)2^N)$, and the measure on the second quantum register further reduces the time complexity by collapsing the quantum state of the second register, decreasing the superposition of the first one due to entanglement.
+[Shor's factorization algorithm](https://en.wikipedia.org/wiki/Shor%27s_algorithm) 
+is an example where the Quantuloop Sparse simulator outperforms other simulation models.
+To factorize an n-bit number, at least $2n$ qubits are required, and each step (quantum gate)
+on the Quantuloop QuEST simulator takes $O(2^{2n})$. In contrast, each step on the
+Quantuloop Sparse simulator takes $O(\log(2^n)2^N)$, and the measure on the second quantum
+register further reduces the time complexity by collapsing the quantum state of the second
+register, decreasing the superposition of the first one due to entanglement.
 """
 
 plot_tab, code_tab = st.tabs(["Performance Plot", "Ket Code"])
@@ -237,7 +246,12 @@ with code_tab:
 """
 ## Grover's Algorithm
 
-The Quantuloop Dense and Quantuloop QuEST simulators are both effective options for simulating [Grover's search algorithm](https://en.wikipedia.org/wiki/Grover%27s_algorithm). In benchmark tests, the execution time of the Quantuloop Dense simulator grows more slowly than that of the Quantuloop Sparse simulator. Grover's algorithm is a quantum search algorithm that can provide a quadratic speedup over classical search algorithms for unstructured search problems.
+The Quantuloop Dense and Quantuloop QuEST simulators are both effective options for
+simulating [Grover's search algorithm](https://en.wikipedia.org/wiki/Grover%27s_algorithm).
+In benchmark tests, the execution time of the Quantuloop Dense simulator grows more slowly
+than that of the Quantuloop Sparse simulator. Grover's algorithm is a quantum search
+algorithm that can provide a quadratic speedup over classical search algorithms for
+unstructured search problems.
 """
 
 plot_tab, code_tab = st.tabs(["Performance Plot", "Ket Code"])
@@ -262,7 +276,11 @@ with code_tab:
 """
 ## Phase Estimator
 
-The [Phase Estimation Algorithm](https://en.wikipedia.org/wiki/Quantum_phase_estimation_algorithm) is a common algorithm used in quantum computing. When simulating this algorithm, the Quantuloop Dense and Quantuloop QuEST simulators are the optimal choices. In comparison to the Quantuloop Sparse simulator, both Quantuloop QuEST and Quantuloop Dense offer a more efficient execution time.
+The [Phase Estimation Algorithm](https://en.wikipedia.org/wiki/Quantum_phase_estimation_algorithm)
+is a common algorithm used in quantum computing. When simulating this algorithm,
+the Quantuloop Dense and Quantuloop QuEST simulators are the optimal choices. 
+In comparison to the Quantuloop Sparse simulator, both Quantuloop QuEST and
+Quantuloop Dense offer a more efficient execution time.
 """
 
 plot_tab, code_tab = st.tabs(["Performance Plot", "Ket Code"])
