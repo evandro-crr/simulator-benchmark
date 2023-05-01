@@ -7,7 +7,7 @@ readme = "README.md"
 packages = [{include = "quantuloop_benchmark", from = "src"}]
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = "^3.9.16"
 ket-lang = "0.5.3"
 streamlit = "^1.21.0"
 plotly = "^5.14.1"
