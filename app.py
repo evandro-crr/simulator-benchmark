@@ -4,6 +4,14 @@ import pandas as pd
 import streamlit as st
 import plotly.express as px
 
+st.set_page_config(
+    page_title="Quantuloop Quantum Simulator Benchmark",
+    page_icon="https://simulator.quantuloop.com/_static/favicon.ico",
+    menu_items={
+        'About': 'Quantuloop Quantum Simulator Benchmark\n\nCopyright 2023 Quantuloop',
+    }
+)
+
 st.markdown(
     """
     <style>
@@ -36,8 +44,6 @@ BENCHMARK_SHORT_NAME = {
 }
 
 SIMULATORS = [
-    'KBW Sparse',
-    'KBW Dense',
     'Quantuloop Sparse (f32)',
     'Quantuloop Sparse (f64)',
     'Quantuloop Dense (f32)',
@@ -46,8 +52,6 @@ SIMULATORS = [
 ]
 
 SIMULATORS_SELECTED = [
-    'KBW Sparse',
-    'KBW Dense',
     'Quantuloop Sparse (f32)',
     'Quantuloop Dense (f32)',
     'Quantuloop QuEST'
@@ -194,18 +198,104 @@ st.image("https://simulator.quantuloop.com/_images/quloop-sim-logo.svg")
 
 """
 ## Shor's Algorithm
+
+[Shor's factorization algorithm](https://en.wikipedia.org/wiki/Shor%27s_algorithm) is an example where the Quantuloop Sparse simulator outperforms other simulation models. To factorize an n-bit number, at least $2n$ qubits are required, and each step (quantum gate) on the Quantuloop QuEST simulator takes $O(2^{2n})$. In contrast, each step on the Quantuloop Sparse simulator takes $O(\log(2^n)2^N)$, and the measure on the second quantum register further reduces the time complexity by collapsing the quantum state of the second register, decreasing the superposition of the first one due to entanglement.
 """
 
-plot('shor')
+plot_tab, code_tab = st.tabs(["Performance Plot", "Ket Code"])
+
+with plot_tab:
+    plot('shor')
+
+with code_tab:
+    """
+    ```py
+    def quantum_subroutine(N, a):
+        n = N.bit_length()
+        reg1 = H(quant(n))
+        reg2 = pown(a, reg1, N)
+        measure(reg2)
+        adj(qft, reg1)
+        r = reduce(gcd, dump(reg1).shots)
+        return 2**n//r
+        
+    def qft(qubits: quant, invert: bool = True):
+        if len(qubits) == 1:
+            H(qubits)
+        else:
+            head, *tail = qubits
+            H(head)
+            for i, c in enumerate(reversed(tail)):
+                ctrl(c, phase(pi / 2**(i + 1)), head)
+            qft(tail, invert=False)
+        if invert:
+            for i in range(len(qubits) // 2):
+                swap(qubits[i], qubits[- i - 1])
+    ```
+    """
 
 """
 ## Grover's Algorithm
+
+The Quantuloop Dense and Quantuloop QuEST simulators are both effective options for simulating [Grover's search algorithm](https://en.wikipedia.org/wiki/Grover%27s_algorithm). In benchmark tests, the execution time of the Quantuloop Dense simulator grows more slowly than that of the Quantuloop Sparse simulator. Grover's algorithm is a quantum search algorithm that can provide a quadratic speedup over classical search algorithms for unstructured search problems.
 """
 
-plot('grover')
+plot_tab, code_tab = st.tabs(["Performance Plot", "Ket Code"])
+
+with plot_tab:
+    plot('grover')
+
+with code_tab:
+    """
+    ```py
+    def grover(n: int, oracle) -> int:
+        s = H(quant(n))
+        steps = int((pi/4)*sqrt(2**n))
+        for _ in range(steps):
+            oracle(s)
+            with around(H, s):
+                phase_on(0, s)
+        return measure(s).value
+    ```
+    """
 
 """
 ## Phase Estimator
+
+The [Phase Estimation Algorithm](https://en.wikipedia.org/wiki/Quantum_phase_estimation_algorithm) is a common algorithm used in quantum computing. When simulating this algorithm, the Quantuloop Dense and Quantuloop QuEST simulators are the optimal choices. In comparison to the Quantuloop Sparse simulator, both Quantuloop QuEST and Quantuloop Dense offer a more efficient execution time.
 """
 
-plot('phase')
+plot_tab, code_tab = st.tabs(["Performance Plot", "Ket Code"])
+
+with plot_tab:
+    plot('phase')
+    
+with code_tab:
+    """
+    ```py
+    def phase_estimator(oracle, precision: int) -> int:
+        precision -= 1
+        ctr = H(quant(precision))
+        tgr = X(quant())
+        for i, c in enumerate(ctr):
+            with control(c):
+                oracle(i, tgr)
+        adj(qft, ctr)
+        return measure(reversed(ctr)).value/2**precision
+        
+    def qft(qubits: quant, invert: bool = True):
+        if len(qubits) == 1:
+            H(qubits)
+        else:
+            *head, tail = qubits
+            H(tail)
+            for i, ctrl_qubit in enumerate(reversed(head)):
+                with control(ctrl_qubit):
+                    phase(pi / 2**(i + 1), tail)
+            qft(head, invert=False)
+        if invert:
+            size = len(qubits)
+            for i in range(size // 2):
+                swap(qubits[i], qubits[size - i - 1])
+    ```
+    """
