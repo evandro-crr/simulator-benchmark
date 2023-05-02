@@ -24,7 +24,7 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-quantuloop_plotly_theme = dict(
+QUANTULOOP_PLOTLY_THEME = dict(
     plot_bgcolor='rgba(0,0,0,0)',
     paper_bgcolor='rgba(0,0,0,0)',
     font_family='Manrope',
@@ -60,7 +60,7 @@ SIMULATORS_SELECTED = [
 
 @st.cache_data
 def load_data():
-    data = {
+    df = {
         'grover': {},
         'shor': {},
         'phase': {},
@@ -68,29 +68,29 @@ def load_data():
     for data_path in os.listdir("data"):
         benchmark, instance, simulator = os.path.basename(
             data_path)[:-5].replace("-", " ").split("_")
-        if instance not in data[benchmark]:
-            data[benchmark][instance] = {}
+        if instance not in df[benchmark]:
+            df[benchmark][instance] = {}
         with open("data/"+data_path, 'r') as file_json:
             data_json = json.load(file_json)
-            data[benchmark][instance][simulator] = {}
-            data[benchmark][instance][simulator]["n_qubits"] = data_json['n_qubits']
-            data[benchmark][instance][simulator]["time"] = data_json['time']
+            df[benchmark][instance][simulator] = {}
+            df[benchmark][instance][simulator]["n_qubits"] = data_json['n_qubits']
+            df[benchmark][instance][simulator]["time"] = data_json['time']
 
     benchmark_index = []
     instances = set()
-    data_frame = []
+    row_data = []
 
-    for benchmark in data:
-        for instance in data[benchmark]:
-            for simulator in data[benchmark][instance]:
-                sim_data = data[benchmark][instance][simulator]
+    for benchmark in df:
+        for instance in df[benchmark]:
+            for simulator in df[benchmark][instance]:
+                sim_data = df[benchmark][instance][simulator]
                 for n_qubits, time in zip(sim_data["n_qubits"], sim_data["time"]):
                     instances.add(instance)
                     benchmark_index.append(BENCHMARK_SHORT_NAME[benchmark])
-                    data_frame.append((instance, simulator, n_qubits, time))
+                    row_data.append((instance, simulator, n_qubits, time))
 
-    data = pd.DataFrame(
-        data_frame,
+    df = pd.DataFrame(
+        row_data,
         index=[
             benchmark_index,
         ],
@@ -102,10 +102,43 @@ def load_data():
         ]
     )
 
-    return instances, data
+    return instances, df, row_data, benchmark_index
 
 
-instances, data = load_data()
+@st.cache_data
+def load_data_speed_up(data, base_instance, row_data, index):
+    data = data.loc[data['AWS EC2 Instances'] == base_instance]
+    new_data = []
+    benchmark_index = []
+    for row, benchmark in zip(row_data, index):
+        instance, simulator, n_qubits, time = row
+        df = data.loc[benchmark]
+        df = df.loc[df["Simulator"] == simulator]
+        df = df.loc[df["N# Qubits"] == n_qubits]
+        try:
+            base_time = float(df['Time (s)'].iloc[0])
+            new_data.append(
+                (instance, simulator, n_qubits, time, base_time/time))
+            benchmark_index.append(benchmark)
+        except IndexError:
+            pass
+
+    return pd.DataFrame(
+        new_data,
+        index=[
+            benchmark_index,
+        ],
+        columns=[
+            "AWS EC2 Instances",
+            "Simulator",
+            "N# Qubits",
+            "Time (s)",
+            "Speed up",
+        ]
+    )
+
+
+INSTANCES, DATA, ROW_DATA, INDEX = load_data()
 
 with st.sidebar:
     """
@@ -115,15 +148,20 @@ with st.sidebar:
     """
     option = st.radio("Comparative between", [
                       "Simulators", "AWS EC2 Instances"])
+
+    plot_y = 'Time (s)'
+
     if option == 'Simulators':
         plot_selection = 'Simulator'
 
         plot_title = st.selectbox(
             "Select the Instance",
-            sorted(instances)
+            sorted(INSTANCES),
         )
 
         instance = [plot_title]
+
+        plot_title += " - Lower is better"
 
         simulator = st.multiselect(
             "Select the Simulators",
@@ -133,6 +171,8 @@ with st.sidebar:
 
         if not len(simulator):
             st.warning('Select at least one simulator', icon="⚠️")
+
+        base_instance = None
 
     elif option == 'AWS EC2 Instances':
         plot_selection = 'AWS EC2 Instances'
@@ -146,12 +186,22 @@ with st.sidebar:
 
         instance = st.multiselect(
             "Select the instances",
-            sorted(instances),
-            instances
+            sorted(INSTANCES),
+            INSTANCES
         )
 
         if not len(instance):
             st.warning('Select at least one instance', icon="⚠️")
+
+        base_instance = st.checkbox("Use an instance as base performance")
+
+        if base_instance:
+            base_instance = st.selectbox(
+                "Select an instance as the base performance", instance)
+            plot_y = "Speed up"
+            plot_title += " - Higher is better"
+        else:
+            plot_title += " - Lower is better"
 
     """
     ## Options
@@ -168,7 +218,11 @@ with st.sidebar:
 
 
 def filter_data(benchmark):
-    df = data.loc[BENCHMARK_SHORT_NAME[benchmark]]
+    if base_instance:
+        df = load_data_speed_up(DATA, base_instance, ROW_DATA, INDEX)
+    else:
+        df = DATA
+    df = df.loc[BENCHMARK_SHORT_NAME[benchmark]]
     df = df[df['AWS EC2 Instances'].isin(instance)]
     df = df[df['Simulator'].isin(simulator)]
     return df
@@ -177,15 +231,15 @@ def filter_data(benchmark):
 def plot(benchmark):
     fig = plot_type(
         filter_data(benchmark),
-        title=f'{BENCHMARK_SHORT_NAME[benchmark]} ({plot_title})',
+        title=f'{BENCHMARK_SHORT_NAME[benchmark]} - {plot_title}',
         x='N# Qubits',
-        y='Time (s)',
+        y=plot_y,
         color=plot_selection,
         log_y=time_log,
         **plot_options,
     )
 
-    fig.update_layout(**quantuloop_plotly_theme)
+    fig.update_layout(**QUANTULOOP_PLOTLY_THEME)
 
     st.plotly_chart(fig)
 
