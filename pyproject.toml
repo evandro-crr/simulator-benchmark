@@ -8,11 +8,11 @@ packages = [{include = "quantuloop_benchmark", from = "src"}]
 
 [tool.poetry.dependencies]
 python = "^3.9.16"
-ket-lang = "0.5.3"
+ket-lang = "0.6.1"
 streamlit = "^1.21.0"
 plotly = "^5.14.1"
-quantuloop-simulator = "^2023.4.1"
-quantuloop-aws-client = "^2023.3b2"
+quantuloop-simulator = "^2023.5"
+quantuloop-aws-client = "^2023.5"
 
 
 [tool.poetry.group.dev.dependencies]
