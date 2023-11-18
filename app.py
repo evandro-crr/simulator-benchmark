@@ -5,11 +5,11 @@ import streamlit as st
 import plotly.express as px
 
 st.set_page_config(
-    page_title="Quantuloop Quantum Simulator Benchmark",
+    page_title="CQSul - Quantuloop Quantum Simulator Benchmark",
     page_icon="https://simulator.quantuloop.com/_static/favicon.ico",
     menu_items={
-        'About': 'Quantuloop Quantum Simulator Benchmark\n\nCopyright 2023 Quantuloop',
-    }
+        "About": "Quantuloop Quantum Simulator Benchmark\n\nCopyright 2023 Quantuloop",
+    },
 )
 
 st.markdown(
@@ -21,60 +21,56 @@ st.markdown(
         }
     </style>
     """,
-    unsafe_allow_html=True
+    unsafe_allow_html=True,
 )
 
 QUANTULOOP_PLOTLY_THEME = dict(
-    plot_bgcolor='rgba(0,0,0,0)',
-    paper_bgcolor='rgba(0,0,0,0)',
-    font_family='Manrope',
-    font_color='#0F1F2E',
-    legend=dict(
-        yanchor="top",
-        y=1,
-        xanchor="left",
-        x=0
-    ),
+    plot_bgcolor="rgba(0,0,0,0)",
+    paper_bgcolor="rgba(0,0,0,0)",
+    font_family="Manrope",
+    font_color="#0F1F2E",
+    legend=dict(yanchor="top", y=1, xanchor="left", x=0),
 )
 
 BENCHMARK_SHORT_NAME = {
     "grover": "Grover's Algorithm",
-    "shor":  "Shor's Algorithm",
+    "shor": "Shor's Algorithm",
     "phase": "Phase Estimator",
 }
 
 SIMULATORS = [
-    'Quantuloop Sparse (f32)',
-    'Quantuloop Sparse (f64)',
-    'Quantuloop Dense (f32)',
-    'Quantuloop Dense (f64)',
-    'Quantuloop QuEST'
+    "Quantuloop Sparse (f32)",
+    "Quantuloop Sparse (f64)",
+    "Quantuloop Dense (f32)",
+    "Quantuloop Dense (f64)",
+    "Quantuloop QuEST",
 ]
 
 SIMULATORS_SELECTED = [
-    'Quantuloop Sparse (f32)',
-    'Quantuloop Dense (f32)',
-    'Quantuloop QuEST'
+    "Quantuloop Sparse (f32)",
+    "Quantuloop Dense (f32)",
+    "Quantuloop QuEST",
 ]
 
 
 @st.cache_data
 def load_data():
     df = {
-        'grover': {},
-        'shor': {},
-        'phase': {},
+        "grover": {},
+        "shor": {},
+        "phase": {},
     }
     for data_path in os.listdir("data"):
-        benchmark, instance, simulator = os.path.basename(
-            data_path)[:-5].replace("-", " ").split("_")
+        benchmark, instance, simulator = (
+            os.path.basename(data_path)[:-5].replace("-", " ").split("_")
+        )
         if instance not in df[benchmark]:
             df[benchmark][instance] = {}
-        with open("data/"+data_path, 'r') as file_json:
+        with open("data/" + data_path, "r") as file_json:
             data_json = json.load(file_json)
             df[benchmark][instance][simulator] = {}
-            df[benchmark][instance][simulator]["n_qubits"] = data_json['n_qubits']
-            df[benchmark][instance][simulator]["time"] = data_json['time']
+            df[benchmark][instance][simulator]["n_qubits"] = data_json["n_qubits"]
+            df[benchmark][instance][simulator]["time"] = data_json["time"]
 
     benchmark_index = []
     instances = set()
@@ -95,11 +91,11 @@ def load_data():
             benchmark_index,
         ],
         columns=[
-            "AWS EC2 Instances",
+            "Number of GPUs",
             "Simulator",
             "N# Qubits",
             "Time (s)",
-        ]
+        ],
     )
 
     return instances, df, row_data, benchmark_index
@@ -107,7 +103,7 @@ def load_data():
 
 @st.cache_data
 def load_data_speed_up(data, base_instance, row_data, index):
-    data = data.loc[data['AWS EC2 Instances'] == base_instance]
+    data = data.loc[data["Number of GPUs"] == base_instance]
     new_data = []
     benchmark_index = []
     for row, benchmark in zip(row_data, index):
@@ -116,9 +112,8 @@ def load_data_speed_up(data, base_instance, row_data, index):
         df = df.loc[df["Simulator"] == simulator]
         df = df.loc[df["N# Qubits"] == n_qubits]
         try:
-            base_time = float(df['Time (s)'].iloc[0])
-            new_data.append(
-                (instance, simulator, n_qubits, time, base_time/time))
+            base_time = float(df["Time (s)"].iloc[0])
+            new_data.append((instance, simulator, n_qubits, time, base_time / time))
             benchmark_index.append(benchmark)
         except IndexError:
             pass
@@ -129,12 +124,12 @@ def load_data_speed_up(data, base_instance, row_data, index):
             benchmark_index,
         ],
         columns=[
-            "AWS EC2 Instances",
+            "Number of GPUs",
             "Simulator",
             "N# Qubits",
             "Time (s)",
             "Speed up",
-        ]
+        ],
     )
 
 
@@ -146,16 +141,15 @@ with st.sidebar:
 
     ## Filter
     """
-    option = st.radio("Comparative between", [
-                      "Simulators", "AWS EC2 Instances"])
+    option = st.radio("Comparative between", ["Simulators", "Number of GPUs"])
 
-    plot_y = 'Time (s)'
+    plot_y = "Time (s)"
 
-    if option == 'Simulators':
-        plot_selection = 'Simulator'
+    if option == "Simulators":
+        plot_selection = "Simulator"
 
         plot_title = st.selectbox(
-            "Select the Instance",
+            "Select the Number of GPUs",
             sorted(INSTANCES),
         )
 
@@ -170,34 +164,28 @@ with st.sidebar:
         )
 
         if not len(simulator):
-            st.warning('Select at least one simulator', icon="⚠️")
+            st.warning("Select at least one simulator", icon="⚠️")
 
         base_instance = None
 
-    elif option == 'AWS EC2 Instances':
-        plot_selection = 'AWS EC2 Instances'
+    elif option == "Number of GPUs":
+        plot_selection = "Number of GPUs"
 
-        plot_title = st.selectbox(
-            "Select the simulator",
-            SIMULATORS
-        )
+        plot_title = st.selectbox("Select the simulator", SIMULATORS)
 
         simulator = [plot_title]
 
-        instance = st.multiselect(
-            "Select the instances",
-            sorted(INSTANCES),
-            INSTANCES
-        )
+        instance = st.multiselect("Select the instances", sorted(INSTANCES), INSTANCES)
 
         if not len(instance):
-            st.warning('Select at least one instance', icon="⚠️")
+            st.warning("Select at least one instance", icon="⚠️")
 
         base_instance = st.checkbox("Use an instance as base performance")
 
         if base_instance:
             base_instance = st.selectbox(
-                "Select an instance as the base performance", instance)
+                "Select an instance as the base performance", instance
+            )
             plot_y = "Speed up"
             plot_title += " - Higher is better"
         else:
@@ -206,13 +194,13 @@ with st.sidebar:
     """
     ## Options
     """
-    option = st.radio("Plot type", ['Line plot', 'Bar plot'])
-    if option == 'Line plot':
+    option = st.radio("Plot type", ["Line plot", "Bar plot"])
+    if option == "Line plot":
         plot_type = px.line
         plot_options = dict(markers=True)
-    elif option == 'Bar plot':
+    elif option == "Bar plot":
         plot_type = px.bar
-        plot_options = dict(barmode='group')
+        plot_options = dict(barmode="group")
 
     time_log = st.checkbox("Show time in logarithmic scale", value=True)
 
@@ -223,16 +211,16 @@ def filter_data(benchmark):
     else:
         df = DATA
     df = df.loc[BENCHMARK_SHORT_NAME[benchmark]]
-    df = df[df['AWS EC2 Instances'].isin(instance)]
-    df = df[df['Simulator'].isin(simulator)]
+    df = df[df["Number of GPUs"].isin(instance)]
+    df = df[df["Simulator"].isin(simulator)]
     return df
 
 
 def plot(benchmark):
     fig = plot_type(
         filter_data(benchmark),
-        title=f'{BENCHMARK_SHORT_NAME[benchmark]} - {plot_title}',
-        x='N# Qubits',
+        title=f"{BENCHMARK_SHORT_NAME[benchmark]} - {plot_title}",
+        x="N# Qubits",
         y=plot_y,
         color=plot_selection,
         log_y=time_log,
@@ -247,10 +235,21 @@ def plot(benchmark):
 st.image("https://simulator.quantuloop.com/_images/quloop-sim-logo.svg")
 
 """
+# Projeto Computação Quântica na Região Sul do Brasil - https://cqsul.gitlab.io
+
 # Quantum Simulator Benchmark
 
-The benchmark results of the Quantuloop Quantum Simulator Suite for HPC on AWS.
-For instructions on how to deploy the simulator suite on the AWS Cloud, please visit https://simulator.quantuloop.com. 
+The benchmark results of the Quantuloop Quantum Simulator Suite for HPC.
+
+**System:**
+
+- 2x  Intel(R) Xeon(R) Gold 5318Y CPU @ 2.10GHz
+- 2x NVIDIA Tesla A30 24GB with NVLink
+- Memory: 251GiB
+- OS: Rocky Linux 8.8
+- NVIDIA driver: 535.54.03
+
+For instructions on how to deploy the simulator suite, please visit https://simulator.quantuloop.com. 
 """
 
 """
@@ -268,7 +267,7 @@ register, decreasing the superposition of the first one due to entanglement.
 plot_tab, code_tab = st.tabs(["Performance Plot", "Ket Code"])
 
 with plot_tab:
-    plot('shor')
+    plot("shor")
 
 with code_tab:
     """
@@ -311,7 +310,7 @@ unstructured search problems.
 plot_tab, code_tab = st.tabs(["Performance Plot", "Ket Code"])
 
 with plot_tab:
-    plot('grover')
+    plot("grover")
 
 with code_tab:
     """
@@ -340,7 +339,7 @@ Quantuloop Dense offer a more efficient execution time.
 plot_tab, code_tab = st.tabs(["Performance Plot", "Ket Code"])
 
 with plot_tab:
-    plot('phase')
+    plot("phase")
 
 with code_tab:
     """
